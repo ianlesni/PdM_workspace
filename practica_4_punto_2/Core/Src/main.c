@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include <main.h>
 #include <API_delay.h>
+#include <API_debounce.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -32,8 +33,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LED_BLINK_CYCLES		5		// Cantidad de ciclos de blink para cada patron
-#define LED_BLINK_TIMES		4		// Cantidad de patrones de blink
+#define LED_BLINK_TIMES		2		// Cantidad de patrones de blink
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -52,6 +52,7 @@
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 void Error_Handler(void);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -59,10 +60,9 @@ void Error_Handler(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 static delay_t blinkDelay;
-static uint8_t toggleCount;
 static uint8_t tiemposIndex;
 
-static const uint32_t TIEMPOS[] = {500, 100, 100, 1000};
+static const uint32_t TIEMPOS[LED_BLINK_TIMES] = {100, 500};
 /* USER CODE END 0 */
 
 /**
@@ -94,8 +94,8 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
+  debounceFSM_init();
   delayInit(&blinkDelay, TIEMPOS[0]);
-  toggleCount = 0;
   tiemposIndex = 0;
   /* USER CODE END 2 */
 
@@ -104,25 +104,20 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+	debounceFSM_update();
     /* USER CODE BEGIN 3 */
 	  if (delayRead(&blinkDelay))
 	  {
 		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-		  toggleCount ++;
 
-		  if (toggleCount >= LED_BLINK_CYCLES*2)
+		  if (readKey())
 		  {
-			  toggleCount = 0;
-			  tiemposIndex ++;
-			  if (tiemposIndex >= LED_BLINK_TIMES)
-			  {
-				  tiemposIndex = 0;
-			  }
-			  if (!delayIsRunning(&blinkDelay))
-			  {
-				  delayWrite(&blinkDelay, TIEMPOS[tiemposIndex]);
-			  }
+			delayInit(&blinkDelay,TIEMPOS[tiemposIndex]);
+			tiemposIndex++;
+			if (tiemposIndex >= LED_BLINK_TIMES)
+			{
+				tiemposIndex = 0;
+			}
 		  }
 	  }
   }
