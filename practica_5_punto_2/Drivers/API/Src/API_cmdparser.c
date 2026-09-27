@@ -29,6 +29,12 @@ typedef enum {
 	CMD_STATUS
 }commands_t;
 
+typedef enum {
+	cmdLine_unk_err = 0,
+	cmdLine_arg_err,
+	cmdLine_ok
+}commandLineStaus_t;
+
 static char* errorMessage;
 static uint8_t cmdReceptionBuffer[CMD_MAX_LINE];
 static uint8_t receptionIndex;
@@ -37,8 +43,10 @@ static char errorLineToLong [] = "\r\nERROR: line too long\r\n";
 static char errorUnknownCommand [] = "\r\nERROR: unknown command\r\n";
 static char errorbadArguments [] = "\r\nERROR: bad arguments\r\n";
 
+static uint8_t * tokens[CMD_MAX_TOKENS];
+
 static commands_t currentCmd;
-static bool cmdProcessLine(void);
+static commandLineStaus_t cmdProcessLine(void);
 static void cleanReceptionBuffer(void);
 static bool startReceivingCondition(char caract);
 static char toUpper(char caract);
@@ -150,16 +158,27 @@ void cmdPoll(void)
 			}
 			else
 			{
-				if (cmdProcessLine())
+				commandLineStaus_t cmdLineResult;
+				cmdLineResult = cmdProcessLine();
+
+				switch (cmdLineResult)
 				{
-					// Es un comando valido
-					goToState(CMD_EXEC);
-				}
-				else
-				{
-					// Es un comando desconocido
-					errorMessage = errorUnknownCommand;
-					goToState(CMD_ERROR);
+					case cmdLine_ok:
+						// Es un comando valido
+						goToState(CMD_EXEC);
+						break;
+					case cmdLine_unk_err:
+						// Es un comando desconocido
+						errorMessage = errorUnknownCommand;
+						goToState(CMD_ERROR);
+						break;
+					case cmdLine_arg_err:
+						// Es un comando desconocido
+						errorMessage = errorbadArguments;
+						goToState(CMD_ERROR);
+						break;
+					default:
+						break;
 				}
 			}
 			/********************/
@@ -260,39 +279,115 @@ void cmdPrintHelp(void)
 }
 
 
-static bool cmdProcessLine(void)
+static commandLineStaus_t cmdProcessLine(void)
 {
-	if (isCmdMatch(&cmdReceptionBuffer[0], "HELP"))
+	uint8_t buffIndex = 0;
+	// Ej:
+	//"LED    ON\r\0"
+	//"LED    ON\n\0"
+	//"LED    ON\r\n\0"
+	// Pasa a ser "LED    ON\0"
+
+	while (cmdReceptionBuffer[buffIndex] != '\0')
 	{
-		currentCmd = CMD_HELP;
-		return true;
-	}
-	else if (isCmdMatch(&cmdReceptionBuffer[0], "LED ON"))
-	{
-		currentCmd = CMD_LED_ON;
-		return true;
-	}
-	else if (isCmdMatch(&cmdReceptionBuffer[0], "LED OFF"))
-	{
-		currentCmd = CMD_LED_OFF;
-		return true;
-	}
-	else if (isCmdMatch(&cmdReceptionBuffer[0], "LED TOGGLE"))
-	{
-		currentCmd = CMD_LED_TOGGLE;
-		return true;
-	}
-	else if (isCmdMatch(&cmdReceptionBuffer[0], "STATUS"))
-	{
-		currentCmd = CMD_STATUS;
-		return true;
-	}
-	else
-	{
-		// Comando desconocido
-		return false;
+		if (cmdReceptionBuffer[buffIndex] == '\r' || cmdReceptionBuffer[buffIndex] == '\n')
+		{
+			cmdReceptionBuffer[buffIndex] = '\0';
+		}
+		buffIndex ++;
 	}
 
+	uint8_t tokenCounter = 0;
+	buffIndex = 0;
+	//"LED    ON\0"
+	//"LED\0   ON\0"
+	// ^       ^
+	// T[0]    T[1]
+
+	while (cmdReceptionBuffer[buffIndex] != '\0' && tokenCounter < CMD_MAX_TOKENS)
+	{
+		while (cmdReceptionBuffer[buffIndex] == ' ' || cmdReceptionBuffer[buffIndex] == '\t')
+		{
+			buffIndex ++;
+		}
+
+		if (cmdReceptionBuffer[buffIndex] == '\0')
+		{
+			break;
+		}
+
+		tokens[tokenCounter] = &cmdReceptionBuffer[buffIndex];
+		tokenCounter ++;
+
+		while (cmdReceptionBuffer[buffIndex] != '\0' && cmdReceptionBuffer[buffIndex] != ' ' && cmdReceptionBuffer[buffIndex] != '\t')
+		{
+			buffIndex ++;
+		}
+
+		if (cmdReceptionBuffer[buffIndex] != '\0')
+		{
+			cmdReceptionBuffer[buffIndex] = '\0';
+			buffIndex ++;
+		}
+
+	}
+
+	if (tokenCounter == 0)
+	{
+		return cmdLine_unk_err;
+	}
+	else if (tokenCounter == 1)
+	{
+		// Comandos de un solo token
+		if (isCmdMatch(tokens[0], "HELP"))
+		{
+			currentCmd = CMD_HELP;
+			return cmdLine_ok;
+		}
+		else if (isCmdMatch(tokens[0], "STATUS"))
+		{
+			currentCmd = CMD_STATUS;
+			return cmdLine_ok;
+		}
+		else
+		{
+			// Comando desconocido
+			return cmdLine_unk_err;
+		}
+
+	}
+	else if (tokenCounter == 2)
+	{
+		//Comandos con dos tokens
+		if (isCmdMatch(tokens[0], "LED"))
+		{
+			if (isCmdMatch(tokens[1], "ON"))
+			{
+				currentCmd = CMD_LED_ON;
+				return cmdLine_ok;
+			}
+			else if (isCmdMatch(tokens[1], "OFF"))
+			{
+				currentCmd = CMD_LED_OFF;
+				return cmdLine_ok;
+			}
+			else if (isCmdMatch(tokens[1], "TOGGLE"))
+			{
+				currentCmd = CMD_LED_TOGGLE;
+				return cmdLine_ok;
+			}
+			else
+			{
+				// Error de parámetros
+				return cmdLine_arg_err;
+			}
+		}
+		else
+		{
+			// Comando desconocido
+			return cmdLine_unk_err;
+		}
+	}
 }
 
 static bool isCmdMatch(uint8_t * cmdReceptBuff, char * cmd)
