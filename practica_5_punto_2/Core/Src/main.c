@@ -24,6 +24,7 @@
 #include "API_delay.h"
 #include "API_debounce.h"
 #include "API_uart.h"
+#include "API_cmdparser.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -97,6 +98,7 @@ int main(void)
   debounceFSM_init();
   delayInit(&blinkDelay, TIEMPOS[0]);
   tiemposIndex = 0;
+  cmdPrintHelp();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -106,30 +108,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  debounceFSM_update();
-
-	  if (delayRead(&blinkDelay))
-	  {
-		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-
-		  if (readKey())
-		  {
-			if (tiemposIndex == 0)
-			{
-				uartSendString(testString);
-			}
-			else
-			{
-				uartSendStringSize(testString, 2);
-			}
-			delayInit(&blinkDelay,TIEMPOS[tiemposIndex]);
-			tiemposIndex++;
-			if (tiemposIndex >= LED_BLINK_TIMES)
-			{
-				tiemposIndex = 0;
-			}
-		  }
-	  }
+	  cmdPoll();
   }
   /* USER CODE END 3 */
 }

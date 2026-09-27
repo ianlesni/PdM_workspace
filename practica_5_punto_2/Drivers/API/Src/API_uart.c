@@ -9,7 +9,7 @@
 
 UART_HandleTypeDef huart2;
 #define UART_TRANSMISION_TIMEOUT 200
-#define UART_RESEPTION_TIMEOUT 200
+#define UART_RESEPTION_TIMEOUT 10
 #define UART_STRING_MIN_SIZE	1
 #define UART_STRING_MAX_SIZE	256
 
@@ -91,9 +91,17 @@ void uartSendStringSize(uint8_t * pstring, uint16_t size)
 }
 
 
-void uartReceiveStringSize(uint8_t * pstring, uint16_t size)
+bool_t uartReceiveStringSize(uint8_t * pstring, uint16_t size)
 {
-	HAL_UART_Receive(&huart2, pstring, size, UART_RESEPTION_TIMEOUT);
+
+	if (HAL_UART_Receive(&huart2, pstring, size, UART_RESEPTION_TIMEOUT) == HAL_OK)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 
