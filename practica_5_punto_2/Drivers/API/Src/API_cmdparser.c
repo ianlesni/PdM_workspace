@@ -11,7 +11,6 @@
 
 typedef bool bool_t;
 
-
 typedef enum {
 	CMD_IDLE = 0,
 	CMD_RECEIVING,
@@ -58,6 +57,16 @@ static void goToState(parseState_t nextState);
 static bool stateIn;
 static bool stateOut;
 
+/**
+  * @brief Inicialización de la FSM de pareseo
+  *
+  * Configura el estado inicial, resetea las variables de la FSM
+  * limpia el buffer de recepción y resetea el comando a procesar
+  *
+  * @param None.
+  * @retval None.
+  *
+  */
 void cmdParserInit(void)
 {
 	fsmState = CMD_IDLE;
@@ -67,6 +76,19 @@ void cmdParserInit(void)
 	currentCmd = CMD_NONE;
 }
 
+
+/**
+  * @brief FSM de pareseo
+  *
+  * Lee continuamente la UART hasta encontrar el primer indicio de que llega un comando.
+  * Procesa lo recibido: tokeniza, valida el comando y sus argumentos.
+  * Luego ejecuta lo requerido por el comando y vuelve a estar disponible para recibir
+  * el siguiente.
+  *
+  * @param None.
+  * @retval None.
+  *
+  */
 void cmdPoll(void)
 {
 	switch(fsmState)
@@ -86,10 +108,12 @@ void cmdPoll(void)
 			{
 				if (startReceivingCondition(cmdReceptionBuffer[0]))
 				{
+					// Si cumple las condiciones necesarias va a recibir
 					goToState(CMD_RECEIVING);
 				}
 				else
 				{
+					// lo que llegó no sirve, limpia el buffer
 					cleanReceptionBuffer();
 				}
 			}
@@ -123,13 +147,13 @@ void cmdPoll(void)
 				}
 				else if (cmdReceptionBuffer[receptionIndex] == '\r' || cmdReceptionBuffer[receptionIndex] == '\n' || cmdReceptionBuffer[receptionIndex] == '\0' )
 				{
-					// Recibio \r o \n
+					// Recibio \r o \n, por lo tanto el comando llegó completo y hay que procesarlo
 					goToState(CMD_PROCESS);
 				}
 				else
 				{
-					// Se pasa a mayuscula cualquier caracter alfabetico recibido, el resto
-					// se almacena tal cual llegó
+					// Se pasa a mayuscula cualquier caracter alfabetico recibido,
+					// el resto se almacena tal cual llegó
 					cmdReceptionBuffer[receptionIndex] = toUpper(cmdReceptionBuffer[receptionIndex]);
 					receptionIndex++;
 				}
@@ -153,7 +177,7 @@ void cmdPoll(void)
 			/********************/
 			if (cmdReceptionBuffer[0] == '#' || (cmdReceptionBuffer[0] == '/' && cmdReceptionBuffer[1] == '/'))
 			{
-				// Ignora las lineas de comentario que comienzan con # o con //
+				// Ignora cualquier mensaje que comience con comentarios: # o con //
 				goToState(CMD_IDLE);
 			}
 			else
@@ -163,8 +187,9 @@ void cmdPoll(void)
 
 				switch (cmdLineResult)
 				{
+					// Analiza el resultado de la tokenizacion
 					case cmdLine_ok:
-						// Es un comando valido
+						// Es un comando valido y debe ejecutarlo
 						goToState(CMD_EXEC);
 						break;
 					case cmdLine_unk_err:
@@ -267,7 +292,13 @@ void cmdPoll(void)
 
 }
 
-
+/**
+  * @brief Imprime por consola los comandos disponibles
+  *
+  * @retval None
+  * @retval None
+  *
+  */
 void cmdPrintHelp(void)
 {
 	uartSendString((uint8_t *)"\r\nComandos disponibles:\r\n");
@@ -278,7 +309,23 @@ void cmdPrintHelp(void)
 	uartSendString((uint8_t *)"STATUS: informa el estado del LED\r\n");
 }
 
-
+/**
+  * @brief Procesa linea de comando recibida
+  *
+  * Analizando el buffer de recepción determina mediante punteros los "tokens"
+  * que son la posición de memoria del buffer de recepción donde se encuentra
+  * el comando, su argumento y potencialmente su valor.
+  *
+  * Una vez tokenizado, procesa el comando para identificarlo. Si es válido y
+  * tiene argumento, procesa el argumento para determinar si es válido.
+  * Al final del análisis disponemos del comando identificado para poder
+  * ejecutar la acción correspondiente en la FSM.
+  *
+  * @retval cmdLine_ok comando conocido
+  * @retval cmdLine_unk_err comando desconocido
+  * @retval cmdLine_arg_err error en los argumentos
+  *
+  */
 static commandLineStaus_t cmdProcessLine(void)
 {
 	uint8_t buffIndex = 0;
@@ -390,6 +437,17 @@ static commandLineStaus_t cmdProcessLine(void)
 	}
 }
 
+
+/**
+  * @brief Compara el comando recibido con un comando conocido
+  *
+  * @param cmdReceptBuff puntero al buffer de recepción de comandos
+  * @param cmd parámetro conocido contra el que se compara
+  *
+  * @retval true hay coincidencia
+  * @retval false no hay coincidencia
+  *
+  */
 static bool isCmdMatch(uint8_t * cmdReceptBuff, char * cmd)
 {
 	uint8_t buffIndex = 0;
@@ -409,6 +467,14 @@ static bool isCmdMatch(uint8_t * cmdReceptBuff, char * cmd)
 	return true;
 }
 
+/**
+  * @brief Limpia el buffer de recepción
+  *
+  * @param None
+  *
+  * @retval None
+  *
+  */
 static void cleanReceptionBuffer(void)
 {
 	for (uint8_t buffIndex = 0; buffIndex < CMD_MAX_LINE; buffIndex ++)
@@ -417,6 +483,15 @@ static void cleanReceptionBuffer(void)
 	}
 }
 
+/**
+  * @brief Analiza si el caracter recibido es condición de comienzo
+  *
+  * @param caract caracter a analizar
+  *
+  * @retval true es un caracter de un potencial comando
+  * @retval false no corresponde al inicio de un comando
+  *
+  */
 static bool startReceivingCondition(char caract)
 {
 	if (caract == '\n' || caract == '\r' || caract == '\0')
@@ -429,6 +504,17 @@ static bool startReceivingCondition(char caract)
 	}
 }
 
+/**
+  * @brief Conversión a mayusculas
+  *
+  * En caso de recibir un caracter alfanumerico en minusculas,
+  * lo pasa a mayuscula para tener un sistema case-insensitive.
+  * Cualquier caracter no alfanumerico no sufre conversión
+  *
+  * @param caract caracter a convertir
+  * @retval caracter convertido (o no)
+  *
+  */
 static char toUpper(char caract)
 {
     if (caract >= 'a' && caract <= 'z')
