@@ -29,15 +29,15 @@ bool_t uartInit()
 	{
 		return false;
 	}
-	uartSendString("\r\nUART Configuration:\r\n");
-	uartSendString("USART2\r\n");
-	uartSendString("115200\r\n");
-	uartSendString("UART_WORDLENGTH_8B\r\n");
-	uartSendString("UART_STOPBITS_1\r\n");
-	uartSendString("UART_PARITY_NONE\r\n");
-	uartSendString("UART_MODE_TX_RX\r\n");
-	uartSendString("UART_HWCONTROL_NONE\r\n");
-	uartSendString("UART_OVERSAMPLING_16\r\n");
+	uartSendString((uint8_t* )"\r\nUART Configuration:\r\n");
+	uartSendString((uint8_t* )"USART2\r\n");
+	uartSendString((uint8_t* )"115200\r\n");
+	uartSendString((uint8_t* )"UART_WORDLENGTH_8B\r\n");
+	uartSendString((uint8_t* )"UART_STOPBITS_1\r\n");
+	uartSendString((uint8_t* )"UART_PARITY_NONE\r\n");
+	uartSendString((uint8_t* )"UART_MODE_TX_RX\r\n");
+	uartSendString((uint8_t* )"UART_HWCONTROL_NONE\r\n");
+	uartSendString((uint8_t* )"UART_OVERSAMPLING_16\r\n");
 
 	return true;
 

@@ -8,7 +8,8 @@
 #ifndef API_INC_API_CMDPARSER_H_
 #define API_INC_API_CMDPARSER_H_
 
-#define CMD_MAX_LINE 64 // incluye el '\0'
+#define CMD_MAX_LINE 64		// incluye el '\0'
+#define CMD_MAX_TOKENS 3	// Comadno + 2 argumentos
 
 typedef enum {
 	CMD_OK = 0,
