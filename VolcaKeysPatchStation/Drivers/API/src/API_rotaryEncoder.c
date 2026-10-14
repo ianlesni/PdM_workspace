@@ -41,7 +41,14 @@ static void debounceFSM_update(void);
 static bool isButtonPressed(void);
 
 
-
+/**
+  * @brief Inicialización del encoder rotativo.
+  *
+  * Inicializa el puerto del encoder rotativo, la máquina de estados
+  * de anti-rebote y las variables internas para el conteo de rotaciones.
+  *
+  * @retval None.
+  */
 void rotaryEncoder_init(void) {
 	rotaryEncoder_port_init();
 	buttonPressedEvent = false;
@@ -51,15 +58,40 @@ void rotaryEncoder_init(void) {
 	timerPeriod = MX_TIM2_getTimerPeriod() + 1;
 }
 
+/**
+  * @brief Manejador periódico del encoder rotativo.
+  *
+  * Actualiza el conteo de rotaciones
+  * y ejecuta la máquina de estados de anti-rebote del pulsador.
+  *
+  * @retval None.
+  */
 void rotaryEncoder_handler(void) {
 	updateRotationCount();
 	debounceFSM_update();
 }
 
+/**
+  * @brief Obtiene el número de clicks del encoder rotativo.
+  *
+  * Retorna el conteo acumulado dividido por la resolución
+  * del encoder (cuentas por click).
+  *
+  * @retval int32_t Número de clicks con signo.
+  */
 int32_t rotaryEncoder_getRotationCount(void) {
     return rotationCount/ENCODER_COUNTS_PER_CLICK;
 }
 
+/**
+  * @brief Indica si el pulsador del encoder fue presionado.
+  *
+  * Retorna true únicamente cuando se detecta una pulsación válida.
+  * El evento se limpia automáticamente tras la lectura.
+  *
+  * @retval true  Pulsación detectada.
+  * @retval false Sin nueva pulsación.
+  */
 bool rotaryEncoder_buttonPressed(void) {
 	bool retval;
 	retval = buttonPressedEvent;
@@ -70,7 +102,7 @@ bool rotaryEncoder_buttonPressed(void) {
 }
 
 /**
-  * @brief Inicialización de la FSM de debounce
+  * @brief Inicialización de la FSM de anti-rebote.
   *
   * Establece el estado inicial de la fsm y configura
   * las variables de control de estado para ingresar
@@ -87,10 +119,10 @@ static void debounceFSM_init(void)
 }
 
 /**
-  * @brief Maquina de estados para gestionar el debounce
+  * @brief Maquina de estados para gestionar el anti-rebote.
   *
   * Modifica el valor del flag keyPressed aplicando el algoritmo
-  * antirebote para que pueda consultarse el estado del
+  * anti-rebote para que pueda consultarse el estado del
   * pulsador sin errores.
   *
   * @retval None.
@@ -249,6 +281,15 @@ static void goToState(debounceState_t nextState)
 	stateOut = true;
 }
 
+/**
+  * @brief Actualiza el conteo de rotaciones del encoder.
+  *
+  * Lee el valor crudo del contador TIM, calcula el delta teniendo
+  * en cuenta el rango [0, timerPeriod-1] y acumula
+  * el resultado en rotationCount.
+  *
+  * @retval None.
+  */
 static void updateRotationCount(void) {
     uint32_t now = rotaryEncoder_port_getRotationCount();
     int32_t  delta = (int32_t)(now - lastRawRotationCount);

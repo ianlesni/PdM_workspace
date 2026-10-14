@@ -16,10 +16,35 @@
 
 static void errorHandler(void);
 
+/**
+  * @brief Inicialización de la API MIDI.
+  *
+  * Inicializa el puerto UART utilizado para la transmisión
+  * de mensajes MIDI.
+  *
+  * @retval None.
+  */
 void midi_init(void) {
 	midi_port_init();
 }
 
+/**
+  * @brief Transmite un mensaje MIDI Control Change (CC).
+  *
+  * Construye y envía un mensaje MIDI de tipo Control Change
+  * (Status Byte: 0xB0 | canal, Data Byte 1: número de CC,
+  * Data Byte 2: valor del CC).
+  *
+  * @param channel Número de canal MIDI.
+  * @param controllerNumber Número de controlador CC.
+  * @param value Valor del controlador CC.
+  *
+  * @retval true  Mensaje MIDI transmitido correctamente.
+  * @retval false Fallo en la transmisión del mensaje MIDI.
+  *
+  * @note Si algún parámetro es inválido, la función llama
+  * al handler de error.
+  */
 bool sendControlChange (uint8_t channel, uint8_t controllerNumber, uint8_t value) {
 	if (channel < MAX_MIDI_CHANNEL && (controllerNumber >= MIN_MIDI_CC_NUM && controllerNumber < MAX_MIDI_CC_NUM) && value <= MAX_MIDI_CC_VAL) {
 		uint8_t data[3];
@@ -48,8 +73,9 @@ bool sendControlChange (uint8_t channel, uint8_t controllerNumber, uint8_t value
 }
 
 /**
-  * @brief  Esta función se ejecuta en caso de que haya un error.
-  * @retval None
+  * @brief Wrap al handler central de errores.
+  *
+  * @retval None.
   */
 static void errorHandler(void)
 {

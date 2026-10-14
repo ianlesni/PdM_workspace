@@ -10,12 +10,9 @@
 
 #include "API_LCD_port.h"
 
-void LCD_sendComand(uint8_t cmd);
-void LCD_sendData(uint8_t dat);
 void LCD_clearDisplay(void);
 void LCD_writeRow(uint8_t row, const char * str);
 void LCD_setCursorPosition(uint8_t row, uint8_t col);
-void LCD_configureBlinkOfCursorPos(void);
 void LCD_writeString(const char * str);
 void LCD_writeCharAtPosition(uint8_t row, uint8_t col, char character);
 void LCD_init(void);

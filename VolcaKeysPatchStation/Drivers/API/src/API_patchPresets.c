@@ -14,6 +14,14 @@ static midiPatch_t preLoadedPset[MAX_PRESETS];
  * https://www.volcashare.com/keys/patches
  */
 
+/**
+  * @brief Inicialización de los presets precargados.
+  *
+  * Asigna nombres y valores de Control Change para cada preset
+  * del Volca Keys disponible en la aplicación.
+  *
+  * @retval None.
+  */
 void patchPreset_init(void) {
 
 	preLoadedPset[0].name = "Dark Massive";
@@ -385,6 +393,13 @@ void patchPreset_init(void) {
 	preLoadedPset[9].param[PARAM_DELAY_FEEDBACK].value = 127;
 }
 
+/**
+  * @brief Obtiene el arreglo de presets precargados.
+  *
+  * Retorna un puntero constante al arreglo estático de presets.
+  *
+  * @retval Puntero a los presets pre-cargados.
+  */
 midiPatch_t* patchPreset_getPresets(void) {
 	return preLoadedPset;
 }

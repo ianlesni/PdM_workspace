@@ -17,7 +17,6 @@
  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <API_patchManager.h>
 #include "main.h"
 #include "i2c.h"
 #include "tim.h"
@@ -31,6 +30,7 @@
 #include "API_LCD.h"
 #include "API_rotaryEncoder.h"
 #include "API_midi.h"
+#include "API_patchManager.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

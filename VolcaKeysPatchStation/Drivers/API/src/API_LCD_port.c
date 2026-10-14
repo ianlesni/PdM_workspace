@@ -14,6 +14,17 @@ static I2C_HandleTypeDef* i2cInstance;
 
 static void errorHandler (void);
 
+/**
+  * @brief Inicialización de port I2C para el LCD.
+  *
+  * Obtiene la instancia I2C configurada y la almacena internamente
+  * para su uso por las funciones de escritura.
+  *
+  * @retval None.
+  *
+  * @note Si la instancia obtenida es NULL, la función
+  * llama al handler de error.
+  */
 void LCD_port_init(void) {
 	I2C_HandleTypeDef* inst;
 
@@ -27,6 +38,19 @@ void LCD_port_init(void) {
 	}
 }
 
+
+/**
+  * @brief Escritura de un byte por I2C.
+  *
+  * Transmite un byte de datos al controlador del LCD.
+  *
+  * @param data Byte a transmitir.
+  *
+  * @retval None.
+  *
+  * @note Si el puerto I2C no fue inicializado, la función
+  * llama al handler de error.
+  */
 void LCD_port_writeByte(uint8_t data) {
 
 	if (i2cInstance != NULL) {
@@ -37,7 +61,20 @@ void LCD_port_writeByte(uint8_t data) {
 	}
 }
 
-
+/**
+  * @brief Retardo bloqueante utilizado por el driver de LCD.
+  *
+  * Ejecuta un retardo bloqueante mediante HAL_Delay() para
+  * cumplir con los tiempos requeridos por el controlador LCD.
+  * Se acepta el uso del retardo bloqueante para la incialización
+  * dado que es un costo bajo tener el flujo bloqueado en esa instancia.
+  *
+  * @param delay Retardo en milisegundos.
+  *
+  * @retval None.
+  *
+  * @note Si delay es 0, la función llama al handler de error.
+  */
 void LCD_port_delay(uint32_t delay) {
 	if (delay != 0) {
 		HAL_Delay(delay);
@@ -48,6 +85,11 @@ void LCD_port_delay(uint32_t delay) {
 
 }
 
+/**
+  * @brief Wrap al handler central de errores.
+  *
+  * @retval None.
+  */
 static void errorHandler (void) {
 	apiErrorHandler();
 }

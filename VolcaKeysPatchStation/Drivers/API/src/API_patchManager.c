@@ -37,9 +37,9 @@ static bool stateIn;
 static bool stateOut;
 static delay_t fsmDelay;
 /*--------------------------------------------------*/
-uint8_t presetIndex;
-int32_t rotationCnt;
-midiPatch_t * preset;
+static uint8_t presetIndex;
+static int32_t rotationCnt;
+static midiPatch_t * preset;
 
 static uint8_t prevScreenIndex;
 static uint8_t prevRowIndex;
@@ -48,6 +48,14 @@ static void updateScreen(uint8_t index);
 #define MAX_OPTIONS		4
 #define PRESET_SCREENS ((MAX_PRESETS/MAX_OPTIONS)+1)
 
+/**
+  * @brief Inicialización del gestor de patches.
+  *
+  * Inicializa la máquina de estados encargada de la navegación,
+  * previsualización y envío de patches MIDI al Volca Keys.
+  *
+  * @retval None.
+  */
 void patchManager_init(void) {
 	fsmInit();
 	presetIndex = 0;
@@ -56,6 +64,15 @@ void patchManager_init(void) {
 	rotationCnt = 0;
 }
 
+/**
+  * @brief Handler del gestor de patches.
+  *
+  * Debe ser invocado desde el bucle principal para ejecutar
+  * la máquina de estados, actualizar la interfaz LCD y gestionar
+  * la interacción con el encoder rotativo.
+  *
+  * @retval None.
+  */
 void patchManager_handler(void) {
 
 	rotaryEncoder_handler();
@@ -186,7 +203,16 @@ void patchManager_handler(void) {
 	}
 }
 
-
+/**
+  * @brief Actualiza la pantalla de navegación de presets.
+  *
+  * Muestra el listado de presets correspondiente a la pantalla
+  * actual y marca con '>' el preset seleccionado.
+  *
+  * @param index Índice absoluto del preset seleccionado.
+  *
+  * @retval None.
+  */
 static void updateScreen(uint8_t index) {
 	uint8_t newScreen;
 	uint8_t optionRow;
@@ -229,12 +255,24 @@ static void updateScreen(uint8_t index) {
 
 }
 
+/**
+  * @brief Inicialización de la máquina de estados.
+  *
+  * @retval None.
+  */
 static void fsmInit(void)
 {
 	stateIn = true;
 	stateOut = false;
 }
 
+/**
+  * @brief Transición hacia un nuevo estado de la MEF.
+  *
+  * @param nextState Estado destino.
+  *
+  * @retval None.
+  */
 static void goToState(fsm_state_t nextState)
 {
 	fsmState = nextState;

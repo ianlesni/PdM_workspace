@@ -8,7 +8,6 @@
 #ifndef INC_API_LCD_PORT_H_
 #define INC_API_LCD_PORT_H_
 
-#include <stdbool.h>
 #include <stdint.h>
 #include "i2c.h"
 
