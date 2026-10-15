@@ -43,7 +43,9 @@ static midiPatch_t * preset;	/**< Arreglo de presets precargados. */
 /** @brief Última pantalla/fila dibujada. se cachean para no redibujar de más. */
 static uint8_t prevScreenIndex;
 static uint8_t prevRowIndex;
-static void updateScreen(uint8_t index);
+static void updateNavigationScreen(uint8_t index);
+static void midiErrorScreen(void);
+static void welcomeScreen(void);
 
 #define MAX_OPTIONS		4								/**< Presets mostrados por pantalla (filas del LCD). */
 #define PRESET_SCREENS ((MAX_PRESETS/MAX_OPTIONS)+1)	/**< Pantallas necesarias para mostrar todos los presets. */
@@ -85,16 +87,11 @@ void patchManager_handler(void) {
 				stateIn = false;
 				stateOut = false;
 
-				LCD_clearDisplay();
-
 				patchPreset_init();
 
 				preset = patchPreset_getPresets();
 
-				LCD_writeRow(0,"     Volca keys");
-				LCD_writeRow(1,"       Patch");
-				LCD_writeRow(2,"      Station");
-				LCD_writeRow(3,"       v.0.1");
+				welcomeScreen();
 
 				delayInit(&fsmDelay, 2000);
 			}
@@ -125,7 +122,7 @@ void patchManager_handler(void) {
 			/********************/
 			rotationCnt = rotaryEncoder_getRotationCount();
 			presetIndex = (uint8_t)(((rotationCnt % MAX_PRESETS) + MAX_PRESETS) % MAX_PRESETS);
-			updateScreen(presetIndex % MAX_PRESETS);
+			updateNavigationScreen(presetIndex % MAX_PRESETS);
 			if (rotaryEncoder_buttonPressed()) {
 				goToState(PRESET_PREVIEW);
 			}
@@ -147,6 +144,7 @@ void patchManager_handler(void) {
 
 				LCD_writeRow(0,"Enviando Patch:");
 				LCD_writeRow(2, preset[presetIndex % MAX_PRESETS].name);
+
 				delayInit(&fsmDelay, 50);
 
 			}
@@ -174,13 +172,7 @@ void patchManager_handler(void) {
 					uint8_t value = preset[presetIndex % MAX_PRESETS].param[paramIndex].value;
 
 					if (sendControlChange(MIDI_PATCH_CHANN, ctrlNum, value) != true) {
-
-						LCD_clearDisplay();
-
-						LCD_writeRow(0,"!!!!!!!!!!!!!!!!!!!!");
-						LCD_writeRow(1,"       ERROR");
-						LCD_writeRow(2,"     ENVIO MIDI");
-						LCD_writeRow(3,"!!!!!!!!!!!!!!!!!!!!");
+						midiErrorScreen();
 						break;
 					}
 				}
@@ -213,7 +205,7 @@ void patchManager_handler(void) {
   *
   * @retval None.
   */
-static void updateScreen(uint8_t index) {
+static void updateNavigationScreen(uint8_t index) {
 	uint8_t newScreen;
 	uint8_t optionRow;
 
@@ -253,6 +245,38 @@ static void updateScreen(uint8_t index) {
 		prevScreenIndex = newScreen;
 	}
 
+}
+
+/**
+  * @brief Imprime la pantalla de error de envío MIDI.
+  *
+  * @param None.
+  *
+  * @retval None.
+  */
+static void midiErrorScreen(void) {
+	LCD_clearDisplay();
+
+	LCD_writeRow(0,"!!!!!!!!!!!!!!!!!!!!");
+	LCD_writeRow(1,"       ERROR");
+	LCD_writeRow(2,"     ENVIO MIDI");
+	LCD_writeRow(3,"!!!!!!!!!!!!!!!!!!!!");
+}
+
+/**
+  * @brief Imprime la pantalla de bienvenida.
+  *
+  * @param None.
+  *
+  * @retval None.
+  */
+static void welcomeScreen(void) {
+	LCD_clearDisplay();
+
+	LCD_writeRow(0,"     Volca keys");
+	LCD_writeRow(1,"       Patch");
+	LCD_writeRow(2,"      Station");
+	LCD_writeRow(3,"       v.0.1");
 }
 
 /**
