@@ -7,14 +7,18 @@
 #include "API_LCD.h"
 #include "API_error.h"
 
-#define LCD_MAX_COL	20
-#define LCD_MAX_ROW	4
+#define LCD_MAX_COL	20 /**< Columnas del display (20x4). */
+#define LCD_MAX_ROW	4	/**< Filas del display (20x4). */
 
+/* Direcciones base en DDRAM (Display Data RAM) del HD44780 para el
+ * primer carácter de cada fila.*/
 #define DDRAM_ADDR_ROW_0	0x00
 #define DDRAM_ADDR_ROW_1	0x40
 #define DDRAM_ADDR_ROW_2	0x14
 #define DDRAM_ADDR_ROW_3	0x54
 
+/** Offset DDRAM del inicio de cada fila; se usa para posicionar el
+ *  cursor sumando la columna deseada. */
 static const uint8_t rowAddrsOffset[] = {DDRAM_ADDR_ROW_0, DDRAM_ADDR_ROW_1, DDRAM_ADDR_ROW_2, DDRAM_ADDR_ROW_3};
 
 static void LCD_sendComand(uint8_t cmd);

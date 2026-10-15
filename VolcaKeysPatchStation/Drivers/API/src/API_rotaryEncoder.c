@@ -17,7 +17,7 @@ typedef enum{
 	BUTTON_RAISING,
 } debounceState_t;
 
-static const uint8_t debounceTimeout = 40;
+static const uint8_t debounceTimeout = 40;	/**< Tiempo de anti-rebote del pulsador, en ms. */
 
 static debounceState_t fsmState;
 static void fsmInit(void);
@@ -29,11 +29,11 @@ static bool stateOut;
 static bool buttonPressedEvent;
 static delay_t debounceDelay;
 
-#define ENCODER_COUNTS_PER_CLICK	4
+#define ENCODER_COUNTS_PER_CLICK	4	/**< Cuentas del TIM por click del encoder en cuadratura. */
 
-static int32_t  rotationCount;     // clicks acumulados con signo
-static uint32_t lastRawRotationCount;
-static uint32_t timerPeriod;
+static int32_t  rotationCount;    	 	/**< Cuentas acumuladas con signo (indica el sentido de giro). */
+static uint32_t lastRawRotationCount;	/**< Último valor crudo del contador TIM, para calcular el delta.*/
+static uint32_t timerPeriod;			/**< Tope del contador (ARR+1 del TIM), usado para corregir la vuelta. */
 static void updateRotationCount(void);
 
 static void debounceFSM_init(void);

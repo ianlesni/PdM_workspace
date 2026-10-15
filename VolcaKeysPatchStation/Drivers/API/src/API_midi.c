@@ -8,11 +8,11 @@
 #include "API_midi.h"
 #include "API_error.h"
 
-#define CONTROL_CHANGE 		0xB
-#define MAX_MIDI_CHANNEL	16
-#define MIN_MIDI_CC_NUM		0
-#define MAX_MIDI_CC_NUM		120
-#define MAX_MIDI_CC_VAL		127
+#define CONTROL_CHANGE 		0xB		/**< Command code MIDI,nibble alto, para Control Change. */
+#define MAX_MIDI_CHANNEL	16		/**< Cantidad de canales MIDI. El canal válido es 0..15. */
+#define MIN_MIDI_CC_NUM		0		/**< Minimo número de controlador CC. */
+#define MAX_MIDI_CC_NUM		120		/**< Máximo número de controlador CC. */
+#define MAX_MIDI_CC_VAL		127		/**< Valor máximo de un dato MIDI (7 bits). */
 
 static void errorHandler(void);
 

@@ -18,10 +18,9 @@
 */
 
 /*--------------------------------------------------*/
-#define SELECTED_PRESET_TIMEOUT 1000
-#define MIDI_PATCH_CHANN		0x02
-#define NULL_PREV_SCREEN_INDX	0xFF
-#define NULL_PREV_ROW_INDX		NULL_PREV_SCREEN_INDX
+#define MIDI_PATCH_CHANN		0x02					/**< Canal MIDI destino del Volca Keys (canal 2 contando desde 0). */
+#define NULL_PREV_SCREEN_INDX	0xFF					/**< Valor por defecto inicial: fuerza la primer actualización de pantalla. */
+#define NULL_PREV_ROW_INDX		NULL_PREV_SCREEN_INDX	/**< Ídem pantalla, para la fila. */
 
 typedef enum{
 	INIT = 0,
@@ -37,16 +36,17 @@ static bool stateIn;
 static bool stateOut;
 static delay_t fsmDelay;
 /*--------------------------------------------------*/
-static uint8_t presetIndex;
-static int32_t rotationCnt;
-static midiPatch_t * preset;
+static uint8_t presetIndex;		/**< Preset seleccionado. */
+static int32_t rotationCnt;		/**< Clicks acumulados del encoder. */
+static midiPatch_t * preset;	/**< Arreglo de presets precargados. */
 
+/** @brief Última pantalla/fila dibujada. se cachean para no redibujar de más. */
 static uint8_t prevScreenIndex;
 static uint8_t prevRowIndex;
 static void updateScreen(uint8_t index);
 
-#define MAX_OPTIONS		4
-#define PRESET_SCREENS ((MAX_PRESETS/MAX_OPTIONS)+1)
+#define MAX_OPTIONS		4								/**< Presets mostrados por pantalla (filas del LCD). */
+#define PRESET_SCREENS ((MAX_PRESETS/MAX_OPTIONS)+1)	/**< Pantallas necesarias para mostrar todos los presets. */
 
 /**
   * @brief Inicialización del gestor de patches.
